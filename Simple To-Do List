@@ -1,0 +1,97 @@
+import os
+
+MAX_TASKS = 100
+FILE_NAME = "todo.txt"
+PRIORITY_LEVELS = ["High", "Medium", "Low"]
+
+def load_tasks():
+    if not os.path.exists(FILE_NAME):
+        return []
+    with open(FILE_NAME, "r") as file:
+        tasks = []
+        for line in file:
+            parts = line.strip().split(" | ")
+            if len(parts) == 3:
+                task = {"name": parts[0], "deadline": parts[1], "priority": parts[2]}
+                tasks.append(task)
+        return tasks
+
+def save_tasks(tasks):
+    with open(FILE_NAME, "w") as file:
+        for task in tasks:
+            file.write(f"{task['name']} | {task['deadline']} | {task['priority']}\n")
+
+def show_tasks(tasks):
+    if not tasks:
+        print("\n📋 Your to-do list is empty.")
+        return
+
+    priority_order = {p: i for i, p in enumerate(PRIORITY_LEVELS)}
+    sorted_tasks = sorted(tasks, key=lambda x: priority_order.get(x["priority"], 3))
+
+    print("\n📋 Your To-Do List (sorted by priority):")
+    for task in sorted_tasks:
+        print(f"- {task['name']} (Deadline: {task['deadline']}, Priority: {task['priority']})")
+
+def add_task(tasks):
+    if len(tasks) >= MAX_TASKS:
+        print("⚠️ Cannot add more tasks. Maximum limit (100) reached.")
+        return
+
+    name = input("➕ Enter task name: ").strip()
+    if not name:
+        print("⚠️ Task name cannot be empty.")
+        return
+
+    for task in tasks:
+        if task["name"].lower() == name.lower():
+            print("⚠️ Task already exists.")
+            return
+
+    deadline = input("📅 Enter deadline (YYYY-MM-DD): ").strip()
+    priority = input("🔺 Enter priority (High/Medium/Low): ").capitalize().strip()
+
+    
+    if priority not in PRIORITY_LEVELS:
+        print("⚠️ Invalid priority. Use High, Medium, or Low.")
+        return
+
+    tasks.append({"name": name, "deadline": deadline, "priority": priority})
+    save_tasks(tasks)
+    print("✅ Task added successfully!")
+
+def remove_task(tasks):
+    name = input("❌ Enter the exact task name to remove: ").strip()
+    for task in tasks:
+        if task["name"].lower() == name.lower():
+            tasks.remove(task)
+            save_tasks(tasks)
+            print(f"🗑️ Removed task: {task['name']}")
+            return
+    print("⚠️ Task not found.")
+
+def main():
+    tasks = load_tasks()
+    while True:
+        print("\n📌 To-Do List Menu")
+        print("1. View tasks")
+        print("2. Add task")
+        print("3. Remove task")
+        print("4. Exit")
+
+        choice = input("Choose an option (1-4): ")
+
+        if choice == "1":
+            show_tasks(tasks)
+        elif choice == "2":
+            add_task(tasks)
+        elif choice == "3":
+            remove_task(tasks)
+        elif choice == "4":
+            print("👋 Exiting To-Do List. Goodbye!")
+            break
+        else:
+            print("⚠️ Invalid choice. Please enter 1-4.")
+
+if __name__ == "__main__":
+    main()
